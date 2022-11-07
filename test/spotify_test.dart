@@ -90,6 +90,21 @@ Future main() async {
     });
   });
 
+  group('Playlists', () {
+    test('getUsersPlaylists', () async {
+      var playlists = spotify.playlists.getUsersPlaylists('X123Y');
+      var firstPage = (await playlists.first());
+      expect(firstPage.metadata.href,
+          'https://api.spotify.com/v1/users/superinteressante/playlists?offset=0&limit=20');
+      var items = firstPage.items!;
+      expect(items.length, 2);
+      expect(items.first.id, '1XIAxOGAEK2h4ravpNTmYF');
+      expect(items.first.href,
+          'https://api.spotify.com/v1/playlists/1XIAxOGAEK2h4ravpNTmYF');
+      expect(items.first.name, 'Hot News @ Melhores Eletrônicas 2022');
+    });
+  });
+
   group('Shows', () {
     test('get', () async {
       var show = await spotify.shows.get('4AlxqGkkrqe0mfIx3Mi7Xt');
@@ -109,7 +124,7 @@ Future main() async {
 
   group('Show episodes', () {
     test('list', () async {
-      var episodes = await spotify.shows.episodes('4AlxqGkkrqe0mfIx3Mi7Xt');
+      var episodes = spotify.shows.episodes('4AlxqGkkrqe0mfIx3Mi7Xt');
       var firstEpisode = (await episodes.first()).items!.first;
 
       expect(firstEpisode.type, 'episode');
@@ -160,8 +175,9 @@ Future main() async {
 
     test('recentlyPlayed', () async {
       // the parameters don't do anything. They are just dummies
-      var result =
-          await spotify.me.recentlyPlayed(limit: 3, before: DateTime.now());
+      var result = await spotify.me
+          .recentlyPlayed(limit: 3, before: DateTime.now())
+          .all();
       expect(result.length, 2);
       var first = result.first;
       expect(first.track != null, true);
@@ -192,6 +208,18 @@ Future main() async {
       expect(first.after, '0aV6DOiouImYTqrR5YlIqx');
     });
 
+    test('isFollowing', () async {
+      final result = await spotify.me.isFollowing(FollowingType.artist, [
+        '2CIMQHirSU0MQqyYHq0eOx',
+        '57dN52uHvrHOxijzpIgu3E',
+        '1vCWHaC5f2uS3yhpwWbIA6'
+      ]);
+      expect(result.isNotEmpty, isTrue);
+      expect(result.first, isTrue);
+      expect(result[1], isFalse);
+      expect(result.last, isTrue);
+    });
+
     test('savedShows', () async {
       var pages = await spotify.me.savedShows();
       var result = await pages.first(2);
@@ -202,6 +230,25 @@ Future main() async {
       expect(firstShow.type, 'show');
       expect(firstShow.name != null, true);
       expect(firstShow.id, '4XPl3uEEL9hvqMkoZrzbx5');
+    });
+
+    test('savedAlbums', () async {
+      final albums = await spotify.me.savedAlbums().getPage(10, 0);
+      expect(albums.items?.length, 2);
+      expect(albums.isLast, true);
+      expect(albums.items?.every((item) => item is Album), isTrue);
+    });
+
+    test('isSavedAlbums', () async {
+      final list = await spotify.me.isSavedAlbums([
+        '382ObEPsp2rxGrESizN5TX',
+        '1A2GTWGtFfWp7KSQTwWOyo',
+        '2noRn2Aes5aoNVsU6iWThc'
+      ]);
+      expect(list.length, 3);
+      expect(list.first, isTrue);
+      expect(list[1], isFalse);
+      expect(list.last, isTrue);
     });
   });
 
