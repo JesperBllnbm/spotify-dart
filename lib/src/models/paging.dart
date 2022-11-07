@@ -29,15 +29,15 @@ class BasePaging<T> extends Object {
 
   /// URL to the next page of items. ([null] if none)
   String? next;
-
-
 }
 
-@JsonSerializable(createToJson: false)
+@JsonSerializable(explicitToJson: true)
 class Paging<T> extends BasePaging<T> {
   Paging();
 
   factory Paging.fromJson(Map<String, dynamic> json) => _$PagingFromJson(json);
+
+  Map<String, dynamic> toJson() => _$PagingToJson(this);
 
   /// The offset of the items returned (as set in the query or by default).
   int? offset;
